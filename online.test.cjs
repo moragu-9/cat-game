@@ -1,0 +1,10 @@
+const vm=require('node:vm'),fs=require('node:fs'),assert=require('node:assert/strict');
+const calls=[],sessionStore=new Map();
+const sandbox={window:{GAME_CONFIG:{url:'https://test.invalid',key:'public-test-key'}},localStorage:{getItem:k=>sessionStore.get(k)||null,setItem:(k,v)=>sessionStore.set(k,v)},AbortSignal,Date,JSON,Error,fetch:async(url,opts)=>{calls.push({url,headers:opts.headers,data:JSON.parse(opts.body)});return {ok:true,json:async()=>url.includes('/signup')?{access_token:'test-session',refresh_token:'test-refresh',expires_in:3600,user:{id:'owner'}}:url.includes('save_hunt')?'owner':true};}};
+vm.createContext(sandbox);vm.runInContext(fs.readFileSync(__dirname+'/online.js','utf8'),sandbox);
+(async()=>{const record={id:'run',score:550,time:20,total:10,best:10,stage:2,counts:[10,0,0],mode:'cute'},profile={name:'냥냥',photo:'assets/cat-face.png'};sandbox.record=record;sandbox.profile=profile;
+assert.equal(await vm.runInContext('Online.nameAvailable(profile.name)',sandbox),true);
+assert.equal(await vm.runInContext('Online.save(record,profile)',sandbox),'owner');
+const sent=calls.at(-1);assert.equal(sent.headers.Authorization,'Bearer test-session');assert.deepEqual(sent.data.p_counts,[10,0,0]);assert.equal(sent.data.p_id,'run');assert.equal(sent.data.p_photo,'');
+await vm.runInContext('Online.save(record,profile)',sandbox);assert.equal(calls.at(-1).data.p_id,'run');assert.equal(calls.at(-1).data.p_photo,null);assert.equal(calls.filter(c=>c.url.includes('/signup')).length,1);
+console.log('PASS: anonymous session reuse, authenticated save payload, idempotent run id, unchanged photo omitted');})();
