@@ -2,3 +2,5 @@
 
 /* Keep the choice marker on the right; unselected choices need no empty circle. */
 .choice-mark{order:2;margin-left:auto;border:0;visibility:hidden}input:checked+.choice-mark{visibility:visible}.rank-item img.default-avatar,.profile-row img.default-avatar{object-fit:contain;padding:2.5%;border-radius:0;clip-path:circle(50%);background:#fff}.rank-item img.default-avatar{padding:1.05px}.profile-row img.default-avatar{padding:1.6px}
+
+#manage-dialog>button{display:block;width:100%;margin-top:10px}#report-reason{display:block;width:100%;padding:12px;margin-top:10px}#report-status,#manage-status{font-size:13px;line-height:1.7}
