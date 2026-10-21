@@ -8,4 +8,5 @@ assert.equal(await vm.runInContext('Online.save(record,profile)',sandbox),'owner
 const sent=calls.at(-1);assert.equal(sent.headers.Authorization,'Bearer test-session');assert.deepEqual(sent.data.p_events,[[1000,1]]);assert.equal(sent.data.p_score,undefined);assert.equal(sent.data.p_id,'run');assert.equal(sent.data.p_photo,'');
 await vm.runInContext('Online.save(record,profile)',sandbox);assert.equal(calls.at(-1).data.p_id,'run');assert.equal(calls.at(-1).data.p_photo,null);assert.equal(calls.filter(c=>c.url.includes('/signup')).length,1);
 record.version=4;await vm.runInContext('Online.save(record,profile)',sandbox);assert.ok(calls.at(-1).url.endsWith('/submit_hunt_v4'));
+record.version=5;await vm.runInContext('Online.save(record,profile)',sandbox);assert.ok(calls.at(-1).url.endsWith('/submit_hunt_v5'));
 console.log('PASS: anonymous session reuse, authenticated save payload, idempotent run id, unchanged photo omitted');})();
