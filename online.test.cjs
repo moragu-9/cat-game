@@ -9,4 +9,7 @@ const sent=calls.at(-1);assert.equal(sent.headers.Authorization,'Bearer test-ses
 await vm.runInContext('Online.save(record,profile)',sandbox);assert.equal(calls.at(-1).data.p_id,'run');assert.equal(calls.at(-1).data.p_photo,null);assert.equal(calls.filter(c=>c.url.includes('/signup')).length,1);
 record.version=4;await vm.runInContext('Online.save(record,profile)',sandbox);assert.ok(calls.at(-1).url.endsWith('/submit_hunt_v4'));
 record.version=5;await vm.runInContext('Online.save(record,profile)',sandbox);assert.ok(calls.at(-1).url.endsWith('/submit_hunt_v5'));
+const workingFetch=sandbox.fetch;let fallbackCode='PGRST202';sandbox.fetch=async(url,opts)=>url.endsWith('/submit_hunt_v5')?{ok:false,status:fallbackCode==='PGRST202'?404:400,json:async()=>({code:fallbackCode,message:fallbackCode})}:workingFetch(url,opts);
+record.events=Array.from({length:199},(_,i)=>[(i+1)*1000,i%2]);record.time=210;await vm.runInContext('Online.save(record,profile)',sandbox);assert.ok(calls.at(-1).url.endsWith('/submit_hunt_v4'));assert.deepEqual(calls.at(-1).data.p_events,record.events);assert.equal(calls.at(-1).headers.Authorization,'Bearer test-session');
+fallbackCode='INVALID_EVENTS';const before=calls.length;await assert.rejects(vm.runInContext('Online.save(record,profile)',sandbox),/INVALID_EVENTS/);assert.equal(calls.length,before,'validation errors must never bypass a validator');
 console.log('PASS: anonymous session reuse, authenticated save payload, idempotent run id, unchanged photo omitted');})();
